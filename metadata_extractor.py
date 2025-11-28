@@ -12,7 +12,13 @@ Requirements:
 - psycopg2-binary
 - pandas
 - findspark (optional, for easy Spark setup)
+
+Note: Default database credentials (postgres/postgres) are used for demonstration
+purposes. In production environments, use environment variables or secure
+credential management systems.
 """
+
+from __future__ import annotations
 
 import json
 import os
@@ -35,6 +41,19 @@ from pyspark.sql.types import (
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame
 
+# ============================================================================
+# CONSTANTS
+# ============================================================================
+
+# PostgreSQL JDBC driver version - update this when upgrading the driver
+POSTGRESQL_JDBC_VERSION = "42.6.0"
+
+# Default database credentials (for demo purposes only)
+DEFAULT_DB_USER = "postgres"
+DEFAULT_DB_PASSWORD = "postgres"
+DEFAULT_DB_HOST = "localhost"
+DEFAULT_DB_PORT = 5432
+
 
 # ============================================================================
 # DATABASE SETUP FUNCTIONS
@@ -43,10 +62,10 @@ if TYPE_CHECKING:
 
 def get_db_connection(
     dbname: str = "postgres",
-    user: str = "postgres",
-    password: str = "postgres",
-    host: str = "localhost",
-    port: int = 5432,
+    user: str = DEFAULT_DB_USER,
+    password: str = DEFAULT_DB_PASSWORD,
+    host: str = DEFAULT_DB_HOST,
+    port: int = DEFAULT_DB_PORT,
 ) -> psycopg2.extensions.connection:
     """
     Create a connection to PostgreSQL database.
@@ -86,10 +105,10 @@ def generate_random_timestamp(days_back: int = 365) -> datetime:
 
 
 def setup_database(
-    user: str = "postgres",
-    password: str = "postgres",
-    host: str = "localhost",
-    port: int = 5432,
+    user: str = DEFAULT_DB_USER,
+    password: str = DEFAULT_DB_PASSWORD,
+    host: str = DEFAULT_DB_HOST,
+    port: int = DEFAULT_DB_PORT,
 ) -> None:
     """
     Set up the metadata_source database with sample tables.
@@ -236,8 +255,10 @@ def get_jdbc_driver_path() -> str:
     possible_paths = [
         "/usr/share/java/postgresql-jdbc.jar",
         "/usr/share/java/postgresql.jar",
-        os.path.expanduser("~/.ivy2/jars/org.postgresql_postgresql-42.6.0.jar"),
-        os.path.join(os.getcwd(), "postgresql-42.6.0.jar"),
+        os.path.expanduser(
+            f"~/.ivy2/jars/org.postgresql_postgresql-{POSTGRESQL_JDBC_VERSION}.jar"
+        ),
+        os.path.join(os.getcwd(), f"postgresql-{POSTGRESQL_JDBC_VERSION}.jar"),
     ]
 
     for path in possible_paths:
@@ -269,8 +290,8 @@ def extract_table_schema(
     spark: SparkSession,
     jdbc_url: str,
     table_name: str,
-    user: str = "postgres",
-    password: str = "postgres",
+    user: str = DEFAULT_DB_USER,
+    password: str = DEFAULT_DB_PASSWORD,
 ) -> list[dict[str, str]]:
     """
     Extract schema information from a database table using PySpark.
@@ -311,8 +332,8 @@ def profile_table(
     jdbc_url: str,
     table_name: str,
     timestamp_column: str,
-    user: str = "postgres",
-    password: str = "postgres",
+    user: str = DEFAULT_DB_USER,
+    password: str = DEFAULT_DB_PASSWORD,
 ) -> dict[str, Any]:
     """
     Profile a database table to extract statistics.
@@ -362,8 +383,8 @@ def extract_metadata_with_spark(
     jdbc_url: str,
     database_name: str,
     tables_config: list[dict[str, str]],
-    user: str = "postgres",
-    password: str = "postgres",
+    user: str = DEFAULT_DB_USER,
+    password: str = DEFAULT_DB_PASSWORD,
 ) -> list[dict[str, Any]]:
     """
     Extract metadata for multiple tables using PySpark.
@@ -518,10 +539,10 @@ def save_metadata_dataframe_to_json(
 
 def extract_metadata_with_pandas(
     dbname: str = "metadata_source",
-    user: str = "postgres",
-    password: str = "postgres",
-    host: str = "localhost",
-    port: int = 5432,
+    user: str = DEFAULT_DB_USER,
+    password: str = DEFAULT_DB_PASSWORD,
+    host: str = DEFAULT_DB_HOST,
+    port: int = DEFAULT_DB_PORT,
 ) -> list[dict[str, Any]]:
     """
     Extract metadata using pandas and psycopg2 (alternative to PySpark).
@@ -613,10 +634,10 @@ def extract_metadata_with_pandas(
 
 
 def run_spark_extraction(
-    user: str = "postgres",
-    password: str = "postgres",
-    host: str = "localhost",
-    port: int = 5432,
+    user: str = DEFAULT_DB_USER,
+    password: str = DEFAULT_DB_PASSWORD,
+    host: str = DEFAULT_DB_HOST,
+    port: int = DEFAULT_DB_PORT,
     output_path: str = "metadata_staging.json",
 ) -> None:
     """
@@ -676,10 +697,10 @@ def run_spark_extraction(
 
 
 def run_pandas_extraction(
-    user: str = "postgres",
-    password: str = "postgres",
-    host: str = "localhost",
-    port: int = 5432,
+    user: str = DEFAULT_DB_USER,
+    password: str = DEFAULT_DB_PASSWORD,
+    host: str = DEFAULT_DB_HOST,
+    port: int = DEFAULT_DB_PORT,
     output_path: str = "metadata_staging.json",
 ) -> None:
     """
